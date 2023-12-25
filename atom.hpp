@@ -23,6 +23,7 @@ class Atom{
         sf::Vector2f getPosition();
         sf::Vector2f getSpeed();
         sf::Vector2f getAcceleration();
+        sf::CircleShape getCircle();
         float getX();
         float getY();
         float getRadius();

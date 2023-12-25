@@ -10,7 +10,7 @@
 int main() {
     sf::RenderWindow window(sf::VideoMode(W, H), "Collision detection");
 
-    //new std::vector<Atom*> atoms;
+    atoms = new std::vector<Atom*>
 
     while (window.isOpen()) {
         sf::Event event;

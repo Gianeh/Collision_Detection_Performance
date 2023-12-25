@@ -24,6 +24,10 @@ sf::Vector2f Atom::getAcceleration() {
     return this->acceleration;
 }
 
+sf::CircleShape Atom::getCircle() {
+    return this->circle;
+}
+
 float Atom::getX() {
     return this->position.x;
 }
