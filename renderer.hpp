@@ -14,7 +14,7 @@ class Renderer{
         float width;
         float height;
     public:
-        Renderer(float width, float height, int max_atoms, std::string title);
+        Renderer(int width, int height, int max_atoms, std::string title);
         void render();
 
 };

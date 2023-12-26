@@ -1,6 +1,6 @@
 #include "renderer.hpp"
 
-Renderer::Renderer(float width, float height, int max_atoms, std::string title = "Collision detection") {
+Renderer::Renderer(int width, int height, int max_atoms, std::string title = "Collision detection") {
     // initialize window
     this->window.create(sf::VideoMode(width, height), title, sf::Style::Close | sf::Style::Titlebar);
 
