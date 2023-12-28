@@ -2,7 +2,8 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
 #include <vector>
-#include <string>
+#include <iostream>
+#include <random>
 #include "atom.hpp"
 
 

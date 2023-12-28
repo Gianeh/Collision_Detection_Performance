@@ -1,4 +1,5 @@
 #include "renderer.hpp"
+using namespace std;
 
 Renderer::Renderer(int width, int height, int max_atoms, std::string title = "Collision detection") {
     // initialize window
@@ -19,32 +20,32 @@ void Renderer::render() {
     // clear window
     this->window.clear();
 
-    // spawn position w/2 h/2
-    float x = this->width / 2;
-    float y = this->height / 2;
 
     // until max atoms are reached spawn new atoms and add to vector
     if (this->atoms.size() < this->max_atoms) {
+
+        float x = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/width));
+        float y = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/height));
         // random radius
-        //float r = rand() % 10 + 10;
-        float r = 10;
+        float r = rand() % 10 + 10;
+        //float r = 10;
 
         // random speed
-        //float vx = rand() % 10 + 1;
-        //float vy = rand() % 10 + 1;
-        float vx = 0;
-        float vy = 0;
+        float vx = rand() % 10 + 1;
+        float vy = rand() % 10 + 1;
+        //float vx = 0;
+        //float vy = 0;
 
         // random acceleration
-        //float ax = rand() % 10 + 1;
-        //float ay = rand() % 10 + 1;
-        float ax = 0;
-        float ay = 0;
+        float ax = rand() % 10 + 1;
+        float ay = rand() % 10 + 1;
+        //float ax = 0;
+        //float ay = 0;
 
         // create new atom
         Atom* atom = new Atom(x, y, r, vx, vy, ax, ay);
 
-        // add atom to vector
+        // add atom to vector{
         this->atoms.push_back(atom);
     }
 
@@ -57,6 +58,7 @@ void Renderer::render() {
     // draw atoms
     for (int i = 0; i < this->atoms.size(); i++) {
         this->window.draw(this->atoms.at(i)->getCircle());
+        cout << this->atoms.at(i)->getX() << ", " << this->atoms.at(i)->getY() << ", "<< this->atoms.at(i)->getRadius() << endl;
     }
 
     // display window

@@ -1,2 +1,23 @@
+#pragma once
+#include <vector>
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
+#include <cmath>
+#include "atom.hpp"  // Assuming this is the correct path to your Atom class header
+
+class PhysicsSolver {
+public:
+    PhysicsSolver(std::vector<Atom>& atoms, int width, int height, float dt = 0.1, int substeps = 8);
+
+    void apply_gravity(Atom& atom);
+    void verlet_integration(Atom& atom);
+    void handle_collisions(Atom& atom);
+    void solve();
+
+private:
+    std::vector<Atom>& atoms;
+    int width;
+    int height;
+    float dt;
+    int substeps;
+};
