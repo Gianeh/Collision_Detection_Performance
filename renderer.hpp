@@ -5,7 +5,7 @@
 #include <iostream>
 #include <random>
 #include "atom.hpp"
-
+#include "solver.hpp"
 
 class Renderer{
     private:

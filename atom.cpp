@@ -30,6 +30,7 @@ sf::Vector2f Atom::getAcceleration() {
 }
 
 sf::CircleShape Atom::getCircle() {
+    this->circle.setPosition(this->position - sf::Vector2f(this->radius,this->radius));
     return this->circle;
 }
 
@@ -47,7 +48,7 @@ float Atom::getRadius() {
 
 float Atom::getMass(){
     float aRadius = this->radius;
-    return aRadius*aRadius*3.1416;
+    return (aRadius*aRadius*3.1416);
 }
 
 void Atom::addG(float g){

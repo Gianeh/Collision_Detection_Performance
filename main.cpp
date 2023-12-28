@@ -11,14 +11,13 @@
 
 #define W 800
 #define H 600
-#define Max_Atoms 300
+#define Max_Atoms 15
 using namespace std;
 int main() {
     sf::RenderWindow window(sf::VideoMode(W, H), "Collision detection");
     Renderer renderer(W, H, Max_Atoms, "Collision detection");
-    for(int i=0;i<200;i++){
+    while(true){
         renderer.render();
-        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
     return 0;
 }

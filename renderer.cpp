@@ -37,10 +37,10 @@ void Renderer::render() {
         //float vy = 0;
 
         // random acceleration
-        float ax = rand() % 10 + 1;
-        float ay = rand() % 10 + 1;
-        //float ax = 0;
-        //float ay = 0;
+        //float ax = rand() % 10 + 1;
+        //float ay = rand() % 10 + 1;
+        float ax = 0;
+        float ay = 0;
 
         // create new atom
         Atom* atom = new Atom(x, y, r, vx, vy, ax, ay);
@@ -52,13 +52,14 @@ void Renderer::render() {
     // THIS SECTION CAN BE PARALLELIZED:
 
     // update atoms positions through solver class
-
-    //solver.solve(this->atoms);
-
+    PhysicsSolver solver(this->atoms, int(this-> width), int(this->height), float(0.001), 8);
+    solver.solve();
     // draw atoms
     for (int i = 0; i < this->atoms.size(); i++) {
         this->window.draw(this->atoms.at(i)->getCircle());
-        cout << this->atoms.at(i)->getX() << ", " << this->atoms.at(i)->getY() << ", "<< this->atoms.at(i)->getRadius() << endl;
+        if (i==0){
+            //cout << this->atoms.at(i)->getX() << ", " << this->atoms.at(i)->getY() << ", "<< this->atoms.at(i)->getSpeed().x<< ", "<< this->atoms.at(i)->getSpeed().y<< endl;
+        }
     }
 
     // display window
