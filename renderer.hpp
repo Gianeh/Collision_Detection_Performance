@@ -13,8 +13,10 @@ class Renderer{
         int max_atoms;
         float width;
         float height;
+        sf::Clock clock;
+        int framerate;
     public:
-        Renderer(int width, int height, int max_atoms, std::string title);
+        Renderer(int width, int height, int max_atoms, std::string title, int framerate);
         void render();
 
 };

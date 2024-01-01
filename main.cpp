@@ -6,10 +6,9 @@
 
 #define W 800
 #define H 600
-#define Max_Atoms 1
+#define Max_Atoms 10
 
 int main() {
-    sf::RenderWindow window(sf::VideoMode(W, H), "Collision detection");
     Renderer renderer(W, H, Max_Atoms, "Collision detection");
 
     renderer.render();

@@ -1,6 +1,7 @@
 #include "renderer.hpp"
+#include <iostream>
 
-Renderer::Renderer(int width, int height, int max_atoms, std::string title = "Collision detection") {
+Renderer::Renderer(int width, int height, int max_atoms, std::string title = "Collision detection", int framerate = 60) {
     // initialize window
     this->window.create(sf::VideoMode(width, height), title, sf::Style::Close | sf::Style::Titlebar);
 
@@ -13,52 +14,66 @@ Renderer::Renderer(int width, int height, int max_atoms, std::string title = "Co
 
     // initialize randomnes
     srand(time(NULL));
+
+    // initialize framerate
+    this->framerate = framerate;
 }
 
 void Renderer::render() {
     // clear window
-    this->window.clear();
+    while(this->window.isOpen()) {
 
-    // spawn position w/2 h/2
-    float x = this->width / 2;
-    float y = this->height / 2;
+        sf::Event event;
+        while(this->window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) {
+                this->window.close();
+            }
+        }
+                
+        this->window.clear();
 
-    // until max atoms are reached spawn new atoms and add to vector
-    if (this->atoms.size() < this->max_atoms) {
-        // random radius
-        //float r = rand() % 10 + 10;
-        float r = 10;
+        // spawn position w/2 h/2
+        float x = this->width / 2;
+        float y = this->height / 2;
 
-        // random speed
-        //float vx = rand() % 10 + 1;
-        //float vy = rand() % 10 + 1;
-        float vx = 0;
-        float vy = 0;
+        // until max atoms are reached spawn new atoms and add to vector
+        if (this->atoms.size() < this->max_atoms) {
+            // random radius
+            //float r = rand() % 10 + 10;
+            float r = 10;
 
-        // random acceleration
-        //float ax = rand() % 10 + 1;
-        //float ay = rand() % 10 + 1;
-        float ax = 0;
-        float ay = 0;
+            // random speed
+            //float vx = rand() % 10 + 1;
+            //float vy = rand() % 10 + 1;
+            float vx = 0;
+            float vy = 0;
 
-        // create new atom
-        Atom* atom = new Atom(x, y, r, vx, vy, ax, ay);
+            // random acceleration
+            //float ax = rand() % 10 + 1;
+            //float ay = rand() % 10 + 1;
+            float ax = 0;
+            float ay = 0;
 
-        // add atom to vector
-        this->atoms.push_back(atom);
+            // create new atom
+            Atom* atom = new Atom(x, y, r, vx, vy, ax, ay);
+
+            // add atom to vector
+            this->atoms.push_back(atom);
+            std::cout << "Atom spawned, number: " << this->atoms.size()-1 << std::endl;
+        }
+
+        // THIS SECTION CAN BE PARALLELIZED:
+
+        // update atoms positions through solver class
+
+        //solver.solve(this->atoms);
+
+        // draw atoms
+        for (int i = 0; i < this->atoms.size(); i++) {
+            this->window.draw(this->atoms.at(i)->getCircle());
+        }
+
+        // display window
+        this->window.display();
     }
-
-    // THIS SECTION CAN BE PARALLELIZED:
-
-    // update atoms positions through solver class
-
-    //solver.solve(this->atoms);
-
-    // draw atoms
-    for (int i = 0; i < this->atoms.size(); i++) {
-        this->window.draw(this->atoms.at(i)->getCircle());
-    }
-
-    // display window
-    this->window.display();
 }
