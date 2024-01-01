@@ -15,6 +15,7 @@ class Atom{
 
         // circle body in sfml
         sf::CircleShape circle;
+        sf::Color color;
 
     public:
 

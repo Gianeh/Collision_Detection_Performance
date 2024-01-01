@@ -10,12 +10,14 @@
 class Renderer{
     private:
         sf::RenderWindow window;
+        sf::Clock clock;
+        int max_fps;
         std::vector<Atom*> atoms;
         int max_atoms;
         float width;
         float height;
     public:
-        Renderer(int width, int height, int max_atoms, std::string title);
+        Renderer(int width, int height, int max_atoms, int max_fps, std::string title);
         void render();
 
 };

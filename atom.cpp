@@ -8,7 +8,8 @@ Atom::Atom(float x, float y, float r, float vx, float vy, float ax, float ay) {
     radius = r;
     // circle body
     circle = sf::CircleShape(radius);
-    circle.setFillColor(sf::Color::White);
+    //set random color
+    circle.setFillColor(sf::Color(rand() % 255 + 10, rand() % 255 + 10, rand() % 255 + 10));
     // set position of circle
     circle.setPosition(position - sf::Vector2f(radius, radius));
 }

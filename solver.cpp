@@ -1,11 +1,11 @@
 #include "solver.hpp"
 
 
-    PhysicsSolver::PhysicsSolver(std::vector<Atom*>& atoms, int width, int height, float dt, int substeps)
-        : atoms(atoms), width(width), height(height), dt(dt), substeps(substeps) {}
+    PhysicsSolver::PhysicsSolver(std::vector<Atom*>& atoms, int width, int height, float dt, float elasticity, int substeps)
+        : atoms(atoms), width(width), height(height), dt(dt), elasticity(elasticity), substeps(substeps) {}
 
     void PhysicsSolver::apply_gravity(Atom& atom) {
-        atom.addG(9.8);
+        atom.addG(20);
     }
 
     void PhysicsSolver::verlet_integration(Atom& atom) {
@@ -16,23 +16,23 @@
     }
 
     void PhysicsSolver::handle_collisions(Atom& atom) {
-    float elasticity = 0.99; // Adjust this value for desired elasticity
-    if (atom.getX() - atom.getRadius() < 0) {
-        //std::cout << "sono entrato qui <0 x" << std::endl;
-            atom.setSpeed(sf::Vector2f(-atom.getSpeed().x*elasticity,atom.getSpeed().y));
+        if (atom.getX() - atom.getRadius() < 0) {
+            //std::cout << "sono entrato qui < x" << std::endl;
+            atom.setSpeed(sf::Vector2f(-atom.getSpeed().x*this->elasticity,atom.getSpeed().y));
         } else if (atom.getX() + atom.getRadius() > width) {
             //std::cout << "sono entrato qui > width x" << std::endl;
-            atom.setSpeed(sf::Vector2f(-atom.getSpeed().x*elasticity, atom.getSpeed().y));
+            atom.setSpeed(sf::Vector2f(-atom.getSpeed().x*this->elasticity, atom.getSpeed().y));
         }
 
         if (atom.getY() - atom.getRadius() < 0) {
             //std::cout << "sono entrato qui <0 y" << std::endl;
-            atom.setSpeed(sf::Vector2f(atom.getSpeed().x, -atom.getSpeed().y*elasticity));
+            atom.setSpeed(sf::Vector2f(atom.getSpeed().x, -atom.getSpeed().y*this->elasticity));
         } else if (atom.getY() + atom.getRadius() > height){
+            std::cout << "il valore elastico è: " << this->elasticity << std::endl;
             //std::cout << "sono entrato qui > height y" << std::endl;
-            atom.setSpeed(sf::Vector2f(atom.getSpeed().x, -atom.getSpeed().y*elasticity));
+            atom.setSpeed(sf::Vector2f(atom.getSpeed().x, -atom.getSpeed().y*this->elasticity));
         }
-    // Collision between atoms
+        // Collision between atoms
         for (Atom* other : atoms) {
             if (other != &atom) {
                 float distance = std::sqrt((atom.getX() - other->getX()) * (atom.getX() - other->getX()) +
@@ -49,7 +49,7 @@
 
                     if (relative_speed < 0) {
                         // Calculate impulse
-                        float impulse = (1.0f + elasticity) * relative_speed / (1 / atom.getMass() + 1 / other->getMass());
+                        float impulse = (1.0f + this->elasticity) * relative_speed / (1 / atom.getMass() + 1 / other->getMass());
 
                         // Apply impulse to atoms
                         atom.setSpeed(atom.getSpeed() - impulse / atom.getMass() * normal);
