@@ -1,79 +1,101 @@
 #include "solver.hpp"
 
+PhysicsSolver::PhysicsSolver(std::vector<Atom*>& atoms, int width, int height, float dt, float elasticity, int substeps)
+    : atoms(atoms), width(width), height(height), dt(dt), elasticity(elasticity), substeps(substeps) {}
 
-    PhysicsSolver::PhysicsSolver(std::vector<Atom*>& atoms, int width, int height, float dt, float elasticity, int substeps)
-        : atoms(atoms), width(width), height(height), dt(dt), elasticity(elasticity), substeps(substeps) {}
+void PhysicsSolver::apply_gravity(Atom& atom) {
+    // Apply constant gravitational force to the atom
+    atom.addG(98100);
+}
 
-    void PhysicsSolver::apply_gravity(Atom& atom) {
-        atom.addG(20);
+void PhysicsSolver::verlet_integration(Atom& atom) {
+    // Update atom positions using Verlet integration
+    sf::Vector2f temp_position = atom.getPosition();
+    sf::Vector2f new_position = temp_position + atom.getSpeed() * dt + 0.5f * atom.getAcceleration() * dt * dt;
+    atom.setPrevSpeed(atom.getSpeed());
+    atom.setPrevPosition(temp_position);
+    atom.setPosition(new_position);
+
+    // Update acceleration for Verlet integration
+    sf::Vector2f newAcceleration = (atom.getSpeed() - atom.getPrevSpeed()) / dt;
+    atom.setAcc(newAcceleration);
+}
+
+void PhysicsSolver::handle_collisions_boundary(Atom& atom) {
+    // Verify if there's collision with the floor
+    if (atom.getY() + atom.getRadius() >= height) {
+        // Calculate the overlap
+        float overlap = atom.getY() + atom.getRadius() - height;
+
+        // Calculate the impulse
+        float impulse = -2.0f * atom.getMass() * atom.getSpeed().y / dt;
+        float elasticity_factor = 1.0f + this->elasticity;  // Elasticity factor
+
+        // Update the velocity
+        atom.setSpeed(sf::Vector2f(atom.getSpeed().x, -impulse / atom.getMass() * elasticity_factor));
+
+        // Update the position (move away from the boundary)
+        atom.setPosition(sf::Vector2f(atom.getX(), height - 2 * overlap));
     }
 
-    void PhysicsSolver::verlet_integration(Atom& atom) {
-        sf::Vector2f temp_position = atom.getPosition();
-        sf::Vector2f new_position = temp_position + atom.getSpeed() * dt + 0.5f * atom.getAcceleration() * dt * dt;
-        atom.setPrevPosition(temp_position);
-        atom.setPosition(new_position);
+    // Check left boundary
+    if (atom.getX() - atom.getRadius() < 0) {
+        // Reflect off the left boundary
+        atom.setSpeed(sf::Vector2f(-atom.getSpeed().x, atom.getSpeed().y));
+        // Move the atom away from the boundary
+        atom.setPosition(sf::Vector2f(atom.getRadius(), atom.getY()));
     }
 
-    void PhysicsSolver::handle_collisions(Atom& atom) {
-        if (atom.getX() - atom.getRadius() < 0) {
-            //std::cout << "sono entrato qui < x" << std::endl;
-            atom.setSpeed(sf::Vector2f(-atom.getSpeed().x*this->elasticity,atom.getSpeed().y));
-        } else if (atom.getX() + atom.getRadius() > width) {
-            //std::cout << "sono entrato qui > width x" << std::endl;
-            atom.setSpeed(sf::Vector2f(-atom.getSpeed().x*this->elasticity, atom.getSpeed().y));
-        }
-
-        if (atom.getY() - atom.getRadius() < 0) {
-            //std::cout << "sono entrato qui <0 y" << std::endl;
-            atom.setSpeed(sf::Vector2f(atom.getSpeed().x, -atom.getSpeed().y*this->elasticity));
-        } else if (atom.getY() + atom.getRadius() > height){
-            std::cout << "il valore elastico è: " << this->elasticity << std::endl;
-            //std::cout << "sono entrato qui > height y" << std::endl;
-            atom.setSpeed(sf::Vector2f(atom.getSpeed().x, -atom.getSpeed().y*this->elasticity));
-        }
-        // Collision between atoms
-        for (Atom* other : atoms) {
-            if (other != &atom) {
-                float distance = std::sqrt((atom.getX() - other->getX()) * (atom.getX() - other->getX()) +
-                                        (atom.getY() - other->getY()) * (atom.getY() - other->getY()));
-
-                float min_distance = atom.getRadius() + other->getRadius();
-                if (distance < min_distance) {
-                    // Handle collision response (elastic bounce)
-                    sf::Vector2f normal = sf::Vector2f(atom.getX() - other->getX(), atom.getY() - other->getY());
-                    normal = normal / distance; // Normalize
-
-                    sf::Vector2f relative_velocity = atom.getSpeed() - other->getSpeed();
-                    float relative_speed = relative_velocity.x * normal.x + relative_velocity.y * normal.y;
-
-                    if (relative_speed < 0) {
-                        // Calculate impulse
-                        float impulse = (1.0f + this->elasticity) * relative_speed / (1 / atom.getMass() + 1 / other->getMass());
-
-                        // Apply impulse to atoms
-                        atom.setSpeed(atom.getSpeed() - impulse / atom.getMass() * normal);
-                        other->setSpeed(other->getSpeed() + impulse / other->getMass() * normal);
-                    }
-                }
-            }
-        }
-    // ...
+    // Check right boundary
+    else if (atom.getX() + atom.getRadius() > width) {
+        // Reflect off the right boundary
+        atom.setSpeed(sf::Vector2f(-atom.getSpeed().x, atom.getSpeed().y));
+        // Move the atom away from the boundary
+        atom.setPosition(sf::Vector2f(width - atom.getRadius(), atom.getY()));
     }
 
-    void PhysicsSolver::solve() {
-        for (int step = 0; step < substeps; ++step) {
-            for (Atom* atom : atoms) {
-                atom->setAcc(0.0, 0.0); // Reset acceleration at the beginning of each substep
+    // Check top boundary
+    if (atom.getY() - atom.getRadius() < 0) {
+        // Reflect off the top boundary
+        atom.setSpeed(sf::Vector2f(atom.getSpeed().x, -atom.getSpeed().y));
+        // Move the atom away from the boundary
+        atom.setPosition(sf::Vector2f(atom.getX(), atom.getRadius()));
+    }
+}
 
-                // Apply external forces (e.g., gravity)
-                atom->addG(9.81);
+void PhysicsSolver::handle_collisions_atoms(Atom& atom, Atom& other) {
+    // Calculate the distance between the atoms as absolute value of the difference between their positions
+    float distance = std::abs(std::sqrt((atom.getX() - other.getX()) * (atom.getX() - other.getX()) + (atom.getY() - other.getY()) * (atom.getY() - other.getY())));
 
-                // Update particle positions using Verlet integration
-                verlet_integration(*atom);
+    // If the atoms are overlapping, resolve the collision
+    if (distance <= atom.getRadius() + other.getRadius()) {
+        // Calculate the relative velocity
+        sf::Vector2f relative_velocity = atom.getSpeed() - other.getSpeed();
 
-                // Handle collisions
-                handle_collisions(*atom);
-            }
+        // Calculate the impulse
+        float impulse = -2.0f * (atom.getMass() * other.getMass()) / (atom.getMass() + other.getMass()) * relative_velocity.dot(atom.getPosition() - other.getPosition()) / distance;
+
+        // Update the velocities
+        atom.setSpeed(atom.getSpeed() + impulse / atom.getMass());
+        other.setSpeed(other.getSpeed() - impulse / other.getMass());
+
+        // Update the positions (move the atoms apart)
+        atom.setPosition(atom.getPosition() + (atom.getRadius() + other.getRadius() - distance) / 2.0f * relative_velocity.normalized());
+        other.setPosition(other.getPosition() - (atom.getRadius() + other.getRadius() - distance) / 2.0f * relative_velocity.normalized());
+    }
+}
+
+void PhysicsSolver::solve() {
+    for (int step = 0; step < substeps; ++step) {
+        for (Atom* atom : atoms) {
+            // Apply external forces (e.g., gravity)
+            apply_gravity(*atom);
+
+            // Update particle positions using Verlet integration
+            verlet_integration(*atom);
+
+            // Handle collisions
+            handle_collisions(*atom);
         }
     }
+}

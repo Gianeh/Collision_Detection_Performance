@@ -4,10 +4,11 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
 
-#define width 800
-#define height 600
+#define width 1920
+#define height 1080
 #define title "collisioni"
-#define maxparticle 15
+#define maxparticle 1000
+#define substeps 8
 
 struct Particle {
     double x, y;  // Position
@@ -15,12 +16,14 @@ struct Particle {
     double vx, vy;  // Velocity
     double mass;
     double radius;
+    sf::Color color;
 };
 
 class VerletPhysicsSimulator {
 public:
     void addParticle(double x, double y, double mass,double vx,double vy, double radius) {
-        Particle* particle = new Particle{x, y, x, y, vx, vy, mass, radius};
+        // random color
+        Particle* particle = new Particle{x, y, x, y, vx, vy, mass, radius, sf::Color(rand() % 255 + 10, rand() % 255 + 10, rand() % 255 + 10)};
         particles.push_back(particle);
     }
 
@@ -109,9 +112,9 @@ public:
 
 private:
     std::vector<Particle*> particles;
-    double gravity = 9.8;  // Adjust as needed (positive for gravity going down)
-    double timeStep = 0.0005;  // Adjust as needed
-    double bounceFactor = 0.9;  // Adjust for the bounce effect
+    double gravity = 9.81;  // Adjust as needed (positive for gravity going down)
+    double timeStep = 0.1;  // Adjust as needed
+    double bounceFactor = 0.8;  // Adjust for the bounce effect
 };
 
 int main() {
@@ -119,13 +122,35 @@ int main() {
 
     // Add particles with initial positions, masses, and radii
     for(int k = 0;k<maxparticle;k++){
-        float x = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/width));
+        /*float x = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/width));
         float y = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/height));
         float vx = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/50));
         float vy = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/50));
         double radius=10.0;
         double mass=1.0;
-        simulator.addParticle(x,y,mass,vx,vy,radius);
+        simulator.addParticle(x,y,mass,vx,vy,radius);*/
+        // generate only particles in position that are not occupied, withoud radius overlapping
+        bool spawn = true;
+        int x = rand() % int(width - 20) + 10;
+        int y = rand() % int(height - 20) + 10;
+        double radius = 6.0;
+        double mass = 1.0;
+        float vx = rand() % 10 + 1;
+        float vy = rand() % 10 + 1;
+        if (simulator.getParticlesPointers().size() > 0){
+            for (int i = 0; i < simulator.getParticlesPointers().size(); i++) {
+                if (std::sqrt((x - simulator.getParticlesPointers().at(i)->x) * (x - simulator.getParticlesPointers().at(i)->x) +
+                    (y - simulator.getParticlesPointers().at(i)->y) * (y - simulator.getParticlesPointers().at(i)->y)) < radius*2){
+                        spawn = false;
+                        break;
+                }
+            }
+            if (spawn){
+                simulator.addParticle(x,y,mass,vx,vy,radius);
+            }
+        }else{
+            simulator.addParticle(x,y,mass,vx,vy,radius);
+        }
     }
 
     // Simulate physics over time
@@ -133,24 +158,43 @@ int main() {
     std::vector<Particle*> particlePointers = simulator.getParticlesPointers();
     window.create(sf::VideoMode(width, height), title, sf::Style::Close | sf::Style::Titlebar);
 
+    sf::Clock clock;
+
     while (window.isOpen()) {
+        // Reset clock
+        clock.restart();
+
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
                 window.close();
             }
         }
-
+        for (int step = 0; step < substeps; ++step)
         simulator.update();  // Adjust time step as needed
 
         window.clear();  // Clear the window before redrawing
         for (const Particle* particle : particlePointers) {
             sf::CircleShape circle = sf::CircleShape(particle->radius);
+            circle.setFillColor(particle->color);
             circle.setPosition(sf::Vector2f(particle->x, particle->y));
             window.draw(circle);
         }
 
         window.display();
+
+        // Sleep to maintain constant FPS
+        sf::Time elapsed = clock.getElapsedTime();
+        sf::sleep(sf::seconds(1.0f / 60.0f - elapsed.asSeconds()));
+
+        // log fps
+        std::cout << "FPS: " << 1.0f / clock.getElapsedTime().asSeconds() << std::endl;
+
+        // warn if fps is too low
+        if (1.0f / clock.getElapsedTime().asSeconds() < 30){
+            std::cout << "WARNING: FPS too low" << std::endl;
+        }
+
     }
 
     // Clean up allocated memory

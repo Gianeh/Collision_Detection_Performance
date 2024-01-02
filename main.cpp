@@ -11,7 +11,7 @@
 
 #define W 1920
 #define H 1080
-#define Max_Atoms 1000
+#define Max_Atoms 100
 using namespace std;
 int main() {
     Renderer renderer(W, H, Max_Atoms, 60, "Collision detection");

@@ -24,7 +24,7 @@ void Renderer::render() {
     // iteration counter
     int iter = 0;
     // initialize solver
-    PhysicsSolver solver(this->atoms, int(this->width), int(this->height), 0.001, 0.99, 8);
+    PhysicsSolver solver(this->atoms, int(this->width), int(this->height), 0.01, 0.95, 8);
     // main loop
     while(this->window.isOpen()) {
         // reset clock
@@ -43,9 +43,9 @@ void Renderer::render() {
 
 
         // until max atoms are reached spawn new atoms and add to vector
-        // every 10 iterations
+        // every 10 iterations try to spawn a new atom
         iter++;
-        if (this->atoms.size() < this->max_atoms && iter == 100) {
+        if (this->atoms.size() < this->max_atoms && iter == 10) {
             iter = 0;
 
             //float x = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/width));
@@ -58,34 +58,35 @@ void Renderer::render() {
             // always spawn on top left corner if position is not already occupied
             int x = 10;
             int y = 10;
+            float r = 10;
+
             if (this->atoms.size() > 0){
+                bool spawn = true;
                 for (int i = 0; i < this->atoms.size(); i++) {
-                    if (!this->isOverlapped(this->atoms.at(i), new Atom(x, y, 10, 0, 0, 0, 0))){
-                        cout << "posizione occupata" << endl;
-                        x = 10;
-                        y = 10;
-                        // random radius
-                        //float r = rand() % 10 + 10;
-                        float r = 10;
+                    if (std::sqrt((x - this->atoms.at(i)->getX()) * (x - this->atoms.at(i)->getX()) +
+                        (y - this->atoms.at(i)->getY()) * (y - this->atoms.at(i)->getY())) < r*2){
 
-                        // random speed
-                        float vx = rand() % 10 + 1;
-                        float vy = rand() % 10 + 1;
-                        //float vx = 0;
-                        //float vy = 0;
+                            cout << "posizione occupata" << endl;
+                            spawn = false;
+                            break;
 
-                        // random acceleration
-                        //float ax = rand() % 10 + 1;
-                        //float ay = rand() % 10 + 1;
-                        float ax = 0;
-                        float ay = 0;
-
-                        // create new atom
-                        Atom* atom = new Atom(x, y, r, vx, vy, ax, ay);
-
-                        // add atom to vector{
-                        this->atoms.push_back(atom);
                     }
+                }
+                if (spawn){
+                    x = 10;
+                    y = 10;
+                    //float vx = rand() % 100 + 5;
+                    //float vy = rand() % 100 + 5;
+                    float vx = 0;
+                    float vy = 0;
+                    float ax = rand() % 10000 + 1;
+                    float ay = rand() % 10000 + 1;
+
+                    // create new atom
+                    Atom* atom = new Atom(x, y, r, vx, vy, ax, ay);
+
+                    // add atom to vector{
+                    this->atoms.push_back(atom);
                 }
             }else{
                 // random radius
@@ -171,17 +172,5 @@ void Renderer::render() {
         // log estimation of framerate
         cout << "FPS: " << 1.0f / this->clock.getElapsedTime().asSeconds() << endl;
 
-    }
-}
-
-// a function that checks if two atoms are overlapped
-bool Renderer::isOverlapped(Atom* atom1, Atom* atom2){
-    float distance = std::sqrt((atom1->getX() - atom2->getX()) * (atom1->getX() - atom2->getX()) +
-                                        (atom1->getY() - atom2->getY()) * (atom1->getY() - atom2->getY()));
-    float min_distance = atom1->getRadius() + atom2->getRadius();
-    if (distance < min_distance) {
-        return true;
-    }else{
-        return false;
     }
 }

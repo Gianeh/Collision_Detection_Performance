@@ -19,6 +19,8 @@ class PhysicsSolver {
         PhysicsSolver(std::vector<Atom*>& atoms, int width = 800, int height = 600, float dt = 0.1, float elasticity = 0.99, int substeps = 8);
         void apply_gravity(Atom& atom);
         void verlet_integration(Atom& atom);
+        void handle_collisions_boundary(Atom& atom);
+        void handle_collisions_atoms(Atom& atom, Atom& other);
         void handle_collisions(Atom& atom);
         void solve();
 };
