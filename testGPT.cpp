@@ -4,10 +4,10 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
 
-#define width 1920
-#define height 1080
+#define width 1200
+#define height 720
 #define title "collisioni"
-#define maxparticle 1000
+#define maxparticle 180
 #define substeps 8
 
 struct Particle {
@@ -97,10 +97,10 @@ public:
                     double impulse = (2.0 * relativeVelocity) / (particleA.mass + particleB.mass);
 
                     // Update particle velocities
-                    particleA.vx += impulse * particleB.mass * nx;
-                    particleA.vy += impulse * particleB.mass * ny;
-                    particleB.vx -= impulse * particleA.mass * nx;
-                    particleB.vy -= impulse * particleA.mass * ny;
+                    particleA.vx += impulse * particleB.mass * nx + 0.1;
+                    particleA.vy += impulse * particleB.mass * ny + 0.1;
+                    particleB.vx -= impulse * particleA.mass * nx + 0.1;
+                    particleB.vy -= impulse * particleA.mass * ny + 0.1;
                 }
             }
         }
@@ -113,7 +113,7 @@ public:
 private:
     std::vector<Particle*> particles;
     double gravity = 9.81;  // Adjust as needed (positive for gravity going down)
-    double timeStep = 0.1;  // Adjust as needed
+    double timeStep = 0.016666667;  // Adjust as needed
     double bounceFactor = 0.8;  // Adjust for the bounce effect
 };
 
@@ -133,7 +133,7 @@ int main() {
         bool spawn = true;
         int x = rand() % int(width - 20) + 10;
         int y = rand() % int(height - 20) + 10;
-        double radius = 6.0;
+        double radius = 12.0;
         double mass = 1.0;
         float vx = rand() % 10 + 1;
         float vy = rand() % 10 + 1;
@@ -171,7 +171,7 @@ int main() {
             }
         }
         for (int step = 0; step < substeps; ++step)
-        simulator.update();  // Adjust time step as needed
+            simulator.update();  // Adjust time step as needed
 
         window.clear();  // Clear the window before redrawing
         for (const Particle* particle : particlePointers) {
