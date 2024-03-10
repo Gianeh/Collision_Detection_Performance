@@ -58,6 +58,20 @@ int main() {
     int btime = 0;
     std::vector <double> frames_per_second;
 
+    // number of threads used
+    if (numThreads <= std::thread::hardware_concurrency()) {
+            numThreads = numThreads;
+    } else {
+        numThreads = std::thread::hardware_concurrency();
+    }
+
+    // Render textures
+    std::vector<sf::RenderTexture> textures(numThreads);
+    /*
+    for (auto &texture : textures) {
+        texture.create(width, height);
+    }*/
+
     while (window.isOpen()) {
         clock.restart();
         btime += 1;
@@ -99,7 +113,7 @@ int main() {
 
 
         window.clear();
-        
+        /*
         for (const auto &particle : simulator.getParticles()) {
             sf::CircleShape circle(particle.radius);
             circle.setFillColor(particle.color);
@@ -107,17 +121,12 @@ int main() {
             window.draw(circle);
         }
          //this section of code but parallelized on numThreads threads if there are enough threads available the max otherwise
+        */
         
-        /*
+        
         auto render_start = std::chrono::high_resolution_clock::now();
 
-        if (numThreads <= std::thread::hardware_concurrency()) {
-            numThreads = numThreads;
-        } else {
-            numThreads = std::thread::hardware_concurrency();
-        }
         std::vector<std::thread> threads(numThreads);
-        std::vector<std::vector<sf::CircleShape>> circlesPerThread(numThreads);
 
         int blockSize = simulator.getParticles().size() / numThreads;
         for (unsigned int i = 0; i < numThreads; ++i) {
@@ -127,27 +136,27 @@ int main() {
                 endIdx = simulator.getParticles().size();  // Assicurati che l'ultimo thread gestisca le rimanenti particelle
             }
 
-            threads[i] = std::thread([&window, &simulator, &circlesPerThread, i, startIdx, endIdx] {
+            threads[i] = std::thread([&window, &simulator, &textures, i, startIdx, endIdx] {
+                //std::cout << "Porca Madonna" << std::endl;
+                textures[i].create(width, height);
+                textures[i].clear();
+
                 sf::CircleShape circle;
                 for (int j = startIdx; j < endIdx; ++j) {
                     const auto &particle = simulator.getParticles()[j];
                     circle.setRadius(particle.radius);
                     circle.setFillColor(particle.color);
                     circle.setPosition(particle.position.x - particle.radius, particle.position.y - particle.radius);
-                    circlesPerThread[i].push_back(circle);
+                    std::cout << "Dio porco" << std::endl;
+                    std::cout.flush();
+                    textures[i].draw(circle);
                 }
             });
-            
+
         }
 
         for (auto& t : threads) {
             t.join();
-        }
-
-        // Combine the results from all threads into a single vector
-        std::vector<sf::CircleShape> circles;
-        for (const auto &threadCircles : circlesPerThread) {
-            circles.insert(circles.end(), threadCircles.begin(), threadCircles.end());
         }
 
         auto render_stop = std::chrono::high_resolution_clock::now();
@@ -156,14 +165,14 @@ int main() {
 
         auto draw_start = std::chrono::high_resolution_clock::now();
 
-        for (const auto &circle : circles) {
-            window.draw(circle);
+        for (const auto &texture : textures) {
+            sf::Sprite sprite(texture.getTexture());
+            window.draw(sprite);
         }
 
         auto draw_stop = std::chrono::high_resolution_clock::now();
         std::cout << "\n\ndraw time: " << std::chrono::duration_cast<std::chrono::microseconds>(draw_stop - draw_start).count() << std::endl;
 
-        */
 
         window.display();
 

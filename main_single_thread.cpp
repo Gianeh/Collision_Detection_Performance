@@ -92,6 +92,7 @@ int main() {
         auto render_start = std::chrono::high_resolution_clock::now();
 
         window.clear();
+        
         sf::CircleShape circle;
         for (const auto &particle : simulator.getParticles()) {
             circle.setRadius(particle.radius);
@@ -99,6 +100,7 @@ int main() {
             circle.setPosition(particle.position.x - particle.radius, particle.position.y - particle.radius);
             window.draw(circle);
         }
+
 
         auto render_stop = std::chrono::high_resolution_clock::now();
         std::cout << "render elapsed: " << std::chrono::duration_cast<std::chrono::microseconds>(render_stop - render_start).count() << std::endl;
